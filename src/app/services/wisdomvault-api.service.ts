@@ -31,6 +31,7 @@ export interface LoginResponse {
   success: boolean;
   message: string;
   page?: FacebookPage;
+  token?: string;
 }
 
 @Injectable({

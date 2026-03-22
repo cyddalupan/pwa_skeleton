@@ -44,6 +44,16 @@ export class HomePage implements OnInit {
   showInstallCard = true;
   showAppFeatures = false;
   showInstalledMessage = false;
+  
+  // Login state
+  isLoggedIn = false;
+  showLoginForm = true;
+  showNavigation = false;
+  currentPage: any = null;
+  loginError = '';
+  loginLoading = false;
+  loginUsername = '';
+  loginPassword = '';
 
   constructor(
     private deviceService: DeviceService,
@@ -77,16 +87,20 @@ export class HomePage implements OnInit {
     }
     this.installInstructions = this.deviceService.getInstallInstructions();
 
+    // Check if user is already logged in
+    this.checkAuthToken();
+
     // Update UI based on state
     this.updateUIState();
   }
 
-  private updateUIState(): void {
+  updateUIState(): void {
     // Show install card if:
-    // 1. On MOBILE devices (iOS/Android) AND
-    // 2. App is NOT already installed (not standalone)
+    // 1. User is NOT logged in AND
+    // 2. On MOBILE devices (iOS/Android) AND
+    // 3. App is NOT already installed (not standalone)
     const isMobile = this.deviceType === 'ios' || this.deviceType === 'android';
-    this.showInstallCard = isMobile && !this.isStandalone;
+    this.showInstallCard = !this.isLoggedIn && isMobile && !this.isStandalone;
     
 
     this.showInstalledMessage = this.isStandalone;
@@ -235,6 +249,87 @@ export class HomePage implements OnInit {
         .catch(error => {
           alert('Error clearing cache: ' + error.message);
         });
+    }
+  }
+
+  // Login methods
+  login(username: string, password: string): void {
+    this.loginLoading = true;
+    this.loginError = '';
+    
+    this.wisdomVaultApi.login(username, password).subscribe({
+      next: (response) => {
+        this.loginLoading = false;
+        
+        if (response.success && response.page) {
+          // Successful login
+          this.isLoggedIn = true;
+          this.showLoginForm = false;
+          this.showNavigation = true;
+          this.currentPage = response.page;
+          this.loginError = '';
+          
+          // Save auth state
+          localStorage.setItem('toybits_auth_token', response.token || '');
+          localStorage.setItem('toybits_page_id', response.page.id.toString());
+          localStorage.setItem('toybits_page_name', response.page.page_name);
+          
+          // Update UI
+          this.updateUIState();
+        } else {
+          // Login failed
+          this.isLoggedIn = false;
+          this.showLoginForm = true;
+          this.showNavigation = false;
+          this.loginError = response.message || 'Login failed';
+        }
+      },
+      error: (error) => {
+        this.loginLoading = false;
+        this.isLoggedIn = false;
+        this.showLoginForm = true;
+        this.showNavigation = false;
+        this.loginError = 'Login failed. Please check your connection.';
+        console.error('Login error:', error);
+      }
+    });
+  }
+
+  logout(): void {
+    this.isLoggedIn = false;
+    this.showLoginForm = true;
+    this.showNavigation = false;
+    this.currentPage = null;
+    this.loginError = '';
+    
+    // Clear auth state
+    localStorage.removeItem('toybits_auth_token');
+    localStorage.removeItem('toybits_page_id');
+    localStorage.removeItem('toybits_page_name');
+    
+    // Update UI
+    this.updateUIState();
+  }
+
+  checkAuthToken(): void {
+    const token = localStorage.getItem('toybits_auth_token');
+    const pageId = localStorage.getItem('toybits_page_id');
+    
+    if (token && pageId) {
+      // Try to validate token by getting page info
+      this.wisdomVaultApi.getPageById(parseInt(pageId)).subscribe({
+        next: (page) => {
+          this.isLoggedIn = true;
+          this.showLoginForm = false;
+          this.showNavigation = true;
+          this.currentPage = page;
+          this.updateUIState();
+        },
+        error: () => {
+          // Token invalid, clear it
+          this.logout();
+        }
+      });
     }
   }
 }
