@@ -83,11 +83,10 @@ export class HomePage implements OnInit {
 
   private updateUIState(): void {
     // Show install card if:
-    // 1. On MOBILE devices only (iOS/Android)
-    // Always show on mobile, even if skipped or "installed"
-    // Users might need instructions again later
+    // 1. On MOBILE devices (iOS/Android) AND
+    // 2. App is NOT already installed (not standalone)
     const isMobile = this.deviceType === 'ios' || this.deviceType === 'android';
-    this.showInstallCard = isMobile;
+    this.showInstallCard = isMobile && !this.isStandalone;
     
 
     this.showInstalledMessage = this.isStandalone;
