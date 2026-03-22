@@ -1,0 +1,167 @@
+<ion-header>
+  <ion-toolbar style="--background: linear-gradient(135deg, #4f46e5, #7c3aed); --color: white;">
+    <ion-title style="font-size: 18px; font-weight: 600;">Settings</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" style="--color: white;">
+        <ion-icon slot="icon-only" name="settings"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>⚙️ App Information</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item>
+          <ion-label>App Version</ion-label>
+          <ion-note slot="end">{{ version }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Build Date</ion-label>
+          <ion-note slot="end">2026-03-20</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Cache Size</ion-label>
+          <ion-note slot="end">{{ cacheSize }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Service Worker</ion-label>
+          <ion-note slot="end" id="settings-sw-status">Checking...</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>PWA Mode</ion-label>
+          <ion-note slot="end" id="settings-pwa-status">Checking...</ion-note>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>📱 Device Detection</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item>
+          <ion-label>Device Type</ion-label>
+          <ion-note slot="end">{{ deviceType }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Browser</ion-label>
+          <ion-note slot="end">{{ browserName }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>PWA Installed</ion-label>
+          <ion-note slot="end">{{ isStandalone ? 'Yes' : 'No' }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Install Skipped</ion-label>
+          <ion-note slot="end">{{ isSkipped ? 'Yes' : 'No' }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Can Install</ion-label>
+          <ion-note slot="end">{{ canInstall ? 'Yes' : 'No' }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>Show Install Card</ion-label>
+          <ion-note slot="end">{{ showInstallCard ? 'Yes' : 'No' }}</ion-note>
+        </ion-item>
+        
+        <ion-item>
+          <ion-label>User Agent</ion-label>
+          <ion-note slot="end" style="font-size: 0.8rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis;">
+            {{ userAgent }}
+          </ion-note>
+        </ion-item>
+      </ion-list>
+      
+      <div style="margin-top: 16px; padding: 12px; background: #f1f5f9; border-radius: 8px; font-size: 0.9rem;">
+        <strong>Debug Info:</strong>
+        <p style="margin: 4px 0;">Device detection: {{ deviceDetectionStatus }}</p>
+        <p style="margin: 4px 0;">Install instructions should show: {{ shouldShowInstallInstructions }}</p>
+        <p style="margin: 4px 0;">Last updated: {{ debugTimestamp }}</p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>🎨 Theme</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <ion-item>
+        <ion-toggle [(ngModel)]="darkMode" (ionChange)="toggleDarkMode()" slot="start">
+          Dark Mode
+        </ion-toggle>
+        <ion-icon name="moon" slot="end" *ngIf="darkMode"></ion-icon>
+        <ion-icon name="sunny" slot="end" *ngIf="!darkMode"></ion-icon>
+      </ion-item>
+      
+      <ion-item>
+        <ion-toggle [(ngModel)]="notifications" slot="start">
+          Push Notifications
+        </ion-toggle>
+      </ion-item>
+      
+      <ion-item>
+        <ion-toggle [(ngModel)]="autoSync" slot="start">
+          Auto Sync
+        </ion-toggle>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>🗑️ Cache</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <p>Clear cached data to free up storage or fix issues:</p>
+      
+      <ion-button expand="block" color="warning" (click)="clearCache()">
+        <ion-icon name="trash" slot="start"></ion-icon>
+        Clear Cache ({{ cacheSize }})
+      </ion-button>
+      
+      <p style="margin-top: 12px; font-size: 0.9rem; color: #64748b;">
+        <em>Note: Clearing cache will reload the app</em>
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>🔗 About</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <p><strong>ToyBits PWA</strong> - Business Automation Progressive Web App</p>
+      <p>Built with Angular 17 and Ionic 7</p>
+      <p>Features:</p>
+      <ul style="margin: 8px 0; padding-left: 20px;">
+        <li>Native app experience</li>
+        <li>Offline functionality</li>
+        <li>Push notifications</li>
+        <li>Dark mode support</li>
+        <li>Tab navigation</li>
+      </ul>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

@@ -1,0 +1,81 @@
+/* Native app styles */
+.native-header {
+  height: 44px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.native-tab-bar {
+  height: 49px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.native-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.native-button {
+  background: #007AFF;
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: rgba(0, 122, 255, 0.3);
+}
+
+.native-button:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .native-header {
+    background: rgba(30, 30, 30, 0.8);
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .native-tab-bar {
+    background: rgba(30, 30, 30, 0.9);
+    border-top: 0.5px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .native-card {
+    background: #1c1c1e;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* Glassmorphism effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Hide browser UI in standalone mode */
+@media (display-mode: standalone) {
+  .standalone-padding {
+    padding-top: 20px;
+  }
+}
+
+/* Ionic overrides */
+ion-content {
+  --background: transparent;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+ion-footer {
+  background: transparent;
+}

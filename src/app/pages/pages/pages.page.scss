@@ -1,0 +1,251 @@
+:host {
+  display: block;
+}
+
+.stats-card {
+  margin-bottom: 16px;
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    text-align: center;
+    
+    .stat-item {
+      .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--ion-color-primary);
+      }
+      
+      .stat-label {
+        font-size: 12px;
+        color: var(--ion-color-medium);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+}
+
+.filters-card {
+  margin-bottom: 16px;
+  
+  .filters-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: 2fr 1fr 1fr;
+    }
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  text-align: center;
+  
+  ion-spinner {
+    margin-bottom: 16px;
+    --color: var(--ion-color-primary);
+  }
+  
+  p {
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  text-align: center;
+  
+  ion-icon {
+    font-size: 48px;
+    color: var(--ion-color-danger);
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: var(--ion-color-danger);
+    margin-bottom: 16px;
+  }
+}
+
+.results-count {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  text-align: center;
+  
+  ion-icon {
+    font-size: 48px;
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
+  }
+  
+  p {
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+.pages-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.page-card {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  ion-card-header {
+    padding-bottom: 8px;
+    
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+    
+    ion-card-subtitle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+  }
+  
+  .page-info {
+    margin-bottom: 16px;
+    
+    .info-text {
+      font-size: 14px;
+      color: var(--ion-color-medium);
+      line-height: 1.4;
+      margin: 0;
+    }
+  }
+  
+  .features-section {
+    margin-bottom: 16px;
+    
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-color-dark);
+      margin: 0 0 8px 0;
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      
+      .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        
+        ion-icon {
+          font-size: 14px;
+        }
+        
+        span {
+          &.disabled {
+            color: var(--ion-color-medium);
+            text-decoration: line-through;
+          }
+        }
+      }
+    }
+  }
+  
+  .emails-section {
+    margin-bottom: 16px;
+    
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-color-dark);
+      margin: 0 0 8px 0;
+    }
+    
+    .emails-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      
+      ion-chip {
+        margin: 0;
+        font-size: 11px;
+        height: 24px;
+        
+        ion-label {
+          padding: 0 8px;
+        }
+      }
+    }
+  }
+  
+  .page-id {
+    text-align: right;
+    font-size: 11px;
+    color: var(--ion-color-medium);
+    margin-top: 8px;
+  }
+}
+
+// Dark mode adjustments
+:host-context(.dark) {
+  .page-card {
+    background: var(--ion-color-step-100);
+    
+    &:hover {
+      background: var(--ion-color-step-150);
+    }
+  }
+  
+  .stats-card,
+  .filters-card {
+    background: var(--ion-color-step-100);
+  }
+}

@@ -1,0 +1,57 @@
+/* Manual Dark Mode Toggle */
+.dark {
+  /* Background colors */
+  --ion-background-color: #0f172a;
+  --ion-background-color-rgb: 15, 23, 42;
+  
+  /* Text colors */
+  --ion-text-color: #f1f5f9;
+  --ion-text-color-rgb: 241, 245, 249;
+  
+  /* Card backgrounds */
+  ion-card {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  /* Header */
+  ion-header {
+    --background: #1e293b;
+    --color: #f1f5f9;
+  }
+  
+  /* Content */
+  ion-content {
+    --background: #0f172a;
+    --color: #f1f5f9;
+  }
+  
+  /* Footer/Tabs */
+  ion-tab-bar {
+    --background: #1e293b;
+    --color: #94a3b8;
+    --color-selected: #60a5fa;
+  }
+  
+  /* Buttons */
+  ion-button {
+    --background: #334155;
+    --color: #f1f5f9;
+  }
+  
+  /* Toggle */
+  ion-toggle {
+    --background: #475569;
+    --background-checked: #3b82f6;
+    --handle-background: #f1f5f9;
+    --handle-background-checked: #f1f5f9;
+  }
+  
+  /* Installation box */
+  .install-box {
+    background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+    border-color: #3b82f6;
+    color: #dbeafe;
+  }
+}

@@ -1,0 +1,220 @@
+/* Global Styles for ToyBits PWA */
+
+/* Fix for Ionic scroll */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+ion-app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+ion-content {
+  flex: 1;
+  overflow-y: auto;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+/* Cards */
+ion-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid #e2e8f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-card {
+    background: #334155;
+    border-color: #475569;
+  }
+}
+
+/* Installation Box */
+.install-box {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  border: 2px solid #3b82f6;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+  color: #1e3a8a;
+}
+
+@media (prefers-color-scheme: dark) {
+  .install-box {
+    background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+    border-color: #60a5fa;
+    color: #dbeafe;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f172a;
+    color: #f1f5f9;
+  }
+  
+  ion-content {
+    --background: #0f172a;
+  }
+}
+
+/* Native app styles */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Utility classes */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Ionic overrides */
+ion-header ion-toolbar {
+  --min-height: 56px;
+}
+
+ion-title {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+/* Tab content */
+.tab-content {
+  padding: 20px;
+  padding-bottom: 80px; /* Space for tab bar */
+}
+
+/* Tab bar */
+ion-tab-bar {
+  bottom: 0;
+  position: fixed;
+  width: 100%;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  ion-tab-bar {
+    background: #1e293b;
+    border-top: 1px solid #334155;
+  }
+}
+
+ion-tab-button {
+  --color: #64748b;
+  --color-selected: #4f46e5;
+}
+
+/* Scroll test */
+.scroll-test {
+  max-height: 200px;
+  overflow-y: auto;
+}
+/* Manual Dark Mode Toggle */
+.dark {
+  /* Background colors */
+  --ion-background-color: #0f172a;
+  --ion-background-color-rgb: 15, 23, 42;
+  
+  /* Text colors */
+  --ion-text-color: #f1f5f9;
+  --ion-text-color-rgb: 241, 245, 249;
+  
+  /* Card backgrounds */
+  ion-card {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+  }
+  
+  /* Header */
+  ion-header {
+    --background: #1e293b;
+    --color: #f1f5f9;
+  }
+  
+  /* Content */
+  ion-content {
+    --background: #0f172a;
+    --color: #f1f5f9;
+  }
+  
+  /* Footer/Tabs */
+  ion-tab-bar {
+    --background: #1e293b;
+    --color: #94a3b8;
+    --color-selected: #60a5fa;
+  }
+  
+  /* Buttons */
+  ion-button {
+    --background: #334155;
+    --color: #f1f5f9;
+  }
+  
+  /* Toggle */
+  ion-toggle {
+    --background: #475569;
+    --background-checked: #3b82f6;
+    --handle-background: #f1f5f9;
+    --handle-background-checked: #f1f5f9;
+  }
+  
+  /* Installation box */
+  .install-box {
+    background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+    border-color: #3b82f6;
+    color: #dbeafe;
+  }
+}
+
+/* Dark Mode Styles */
+@import './styles.dark.scss';
