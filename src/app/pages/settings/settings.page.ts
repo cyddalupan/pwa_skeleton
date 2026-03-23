@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { DeviceService } from '../../services/device.service';
 import { PwaService } from '../../services/pwa.service';
+import { WisdomVaultApiService, FacebookPage } from '../../services/wisdomvault-api.service';
 
 @Component({
   selector: 'app-settings',
@@ -26,9 +27,30 @@ export class SettingsPage implements OnInit {
   shouldShowInstallInstructions = 'Unknown';
   debugTimestamp = '';
   
+  // Page settings properties
+  currentPage: FacebookPage | null = null;
+  pageLoading = false;
+  pageError = '';
+  pageSaved = false;
+  
+  // Form properties for editing
+  editPageName = '';
+  editInfo = '';
+  editAdditionalInfo = '';
+  editTier: 'basic' | 'gold' | 'premium' = 'basic';
+  editEmails: string[] = [''];
+  editFeatures = {
+    inventory: false,
+    pos: false,
+    leads: false,
+    online_selling: false,
+    scheduling: false
+  };
+  
   constructor(
     private deviceService: DeviceService,
-    private pwaService: PwaService
+    private pwaService: PwaService,
+    private wisdomVaultApi: WisdomVaultApiService
   ) {
     // Check system preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -38,6 +60,102 @@ export class SettingsPage implements OnInit {
   
   ngOnInit() {
     this.updateDebugInfo();
+    this.loadPageData();
+  }
+  
+  loadPageData() {
+    const authDataStr = localStorage.getItem('toybits_auth_data');
+    
+    if (authDataStr) {
+      try {
+        const authData = JSON.parse(authDataStr);
+        const pageId = parseInt(authData.pageId);
+        
+        this.pageLoading = true;
+        this.pageError = '';
+        
+        this.wisdomVaultApi.getPageById(pageId).subscribe({
+          next: (page) => {
+            this.currentPage = page;
+            this.populateFormFromPage(page);
+            this.pageLoading = false;
+          },
+          error: (error) => {
+            console.error('Error loading page data:', error);
+            this.pageError = 'Failed to load page data. Please try again.';
+            this.pageLoading = false;
+          }
+        });
+      } catch (error) {
+        console.error('Error parsing auth data:', error);
+        this.pageError = 'Invalid authentication data. Please login again.';
+        this.pageLoading = false;
+      }
+    } else {
+      this.pageError = 'No page data available. Please login first.';
+    }
+  }
+  
+  populateFormFromPage(page: FacebookPage) {
+    this.editPageName = page.page_name;
+    this.editInfo = page.info || '';
+    this.editAdditionalInfo = page.additional_info || '';
+    this.editTier = page.tier;
+    this.editEmails = page.emails.length > 0 ? [...page.emails] : [''];
+    this.editFeatures = { ...page.features };
+  }
+  
+  addEmailField() {
+    this.editEmails.push('');
+  }
+  
+  removeEmailField(index: number) {
+    if (this.editEmails.length > 1) {
+      this.editEmails.splice(index, 1);
+    } else {
+      this.editEmails[index] = '';
+    }
+  }
+  
+  savePageSettings() {
+    if (!this.currentPage) return;
+    
+    this.pageLoading = true;
+    this.pageError = '';
+    this.pageSaved = false;
+    
+    // In a real implementation, this would call an update API endpoint
+    // For now, we'll simulate saving and update the local data
+    
+    const updatedPage: FacebookPage = {
+      ...this.currentPage,
+      page_name: this.editPageName,
+      info: this.editInfo || null,
+      additional_info: this.editAdditionalInfo || null,
+      tier: this.editTier,
+      emails: this.editEmails.filter(email => email.trim() !== ''),
+      features: { ...this.editFeatures }
+    };
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      this.currentPage = updatedPage;
+      this.pageLoading = false;
+      this.pageSaved = true;
+      
+      // Show success message for 3 seconds
+      setTimeout(() => {
+        this.pageSaved = false;
+      }, 3000);
+      
+      console.log('Page settings saved:', updatedPage);
+    }, 1000);
+  }
+  
+  resetForm() {
+    if (this.currentPage) {
+      this.populateFormFromPage(this.currentPage);
+    }
   }
   
   updateDebugInfo() {

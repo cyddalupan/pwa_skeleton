@@ -45,6 +45,195 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- Page Settings Card -->
+  <ion-card *ngIf="currentPage">
+    <ion-card-header>
+      <ion-card-title>📄 Page Settings</ion-card-title>
+      <ion-card-subtitle>{{ currentPage.page_name }}</ion-card-subtitle>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <!-- Loading State -->
+      <div *ngIf="pageLoading" style="text-align: center; padding: 20px;">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p style="margin-top: 12px; color: #64748b;">Loading page data...</p>
+      </div>
+      
+      <!-- Error State -->
+      <div *ngIf="pageError && !pageLoading" style="padding: 12px; background: #fee2e2; border-radius: 6px; border: 1px solid #fca5a5; margin-bottom: 16px;">
+        <p style="margin: 0; color: #dc2626; font-size: 0.9rem;">
+          <ion-icon name="warning" style="vertical-align: middle; margin-right: 4px;"></ion-icon>
+          {{ pageError }}
+        </p>
+      </div>
+      
+      <!-- Success Message -->
+      <div *ngIf="pageSaved" style="padding: 12px; background: #dcfce7; border-radius: 6px; border: 1px solid #86efac; margin-bottom: 16px;">
+        <p style="margin: 0; color: #16a34a; font-size: 0.9rem;">
+          <ion-icon name="checkmark-circle" style="vertical-align: middle; margin-right: 4px;"></ion-icon>
+          Page settings saved successfully!
+        </p>
+      </div>
+      
+      <!-- Page Info Display -->
+      <div *ngIf="!pageLoading && !pageError">
+        <ion-list lines="none">
+          <ion-item>
+            <ion-label position="stacked">Page Name</ion-label>
+            <ion-input [(ngModel)]="editPageName" placeholder="Enter page name"></ion-input>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label position="stacked">Tier</ion-label>
+            <ion-select [(ngModel)]="editTier" interface="popover">
+              <ion-select-option value="basic">Basic</ion-select-option>
+              <ion-select-option value="gold">Gold</ion-select-option>
+              <ion-select-option value="premium">Premium</ion-select-option>
+            </ion-select>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label position="stacked">Description (Info)</ion-label>
+            <ion-textarea 
+              [(ngModel)]="editInfo" 
+              placeholder="Enter page description"
+              rows="4"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label position="stacked">Additional Info</ion-label>
+            <ion-textarea 
+              [(ngModel)]="editAdditionalInfo" 
+              placeholder="Enter additional information"
+              rows="3"
+              autoGrow="true">
+            </ion-textarea>
+          </ion-item>
+          
+          <!-- Email Addresses -->
+          <ion-item>
+            <ion-label position="stacked">Email Addresses</ion-label>
+            <div style="width: 100%;">
+              <div *ngFor="let email of editEmails; let i = index" style="display: flex; align-items: center; margin-bottom: 8px;">
+                <ion-input 
+                  [(ngModel)]="editEmails[i]" 
+                  placeholder="email@example.com"
+                  style="flex: 1; margin-right: 8px;">
+                </ion-input>
+                <ion-button 
+                  fill="clear" 
+                  color="medium" 
+                  size="small"
+                  (click)="removeEmailField(i)">
+                  <ion-icon name="close" slot="icon-only"></ion-icon>
+                </ion-button>
+              </div>
+              <ion-button 
+                fill="clear" 
+                size="small" 
+                color="primary"
+                (click)="addEmailField()">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Add Email
+              </ion-button>
+            </div>
+          </ion-item>
+          
+          <!-- Features -->
+          <ion-item>
+            <ion-label position="stacked">Features</ion-label>
+            <div style="width: 100%;">
+              <ion-item lines="none">
+                <ion-toggle [(ngModel)]="editFeatures.inventory" slot="start">
+                  Inventory Management
+                </ion-toggle>
+              </ion-item>
+              
+              <ion-item lines="none">
+                <ion-toggle [(ngModel)]="editFeatures.pos" slot="start">
+                  Point of Sale (POS)
+                </ion-toggle>
+              </ion-item>
+              
+              <ion-item lines="none">
+                <ion-toggle [(ngModel)]="editFeatures.leads" slot="start">
+                  Lead Generation
+                </ion-toggle>
+              </ion-item>
+              
+              <ion-item lines="none">
+                <ion-toggle [(ngModel)]="editFeatures.online_selling" slot="start">
+                  Online Selling
+                </ion-toggle>
+              </ion-item>
+              
+              <ion-item lines="none">
+                <ion-toggle [(ngModel)]="editFeatures.scheduling" slot="start">
+                  Appointment Scheduling
+                </ion-toggle>
+              </ion-item>
+            </div>
+          </ion-item>
+          
+          <!-- Read-only Fields -->
+          <ion-item>
+            <ion-label>Page ID</ion-label>
+            <ion-note slot="end">{{ currentPage.page_id }}</ion-note>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label>Username</ion-label>
+            <ion-note slot="end">{{ currentPage.username }}</ion-note>
+          </ion-item>
+          
+          <ion-item>
+            <ion-label>Database ID</ion-label>
+            <ion-note slot="end">{{ currentPage.id }}</ion-note>
+          </ion-item>
+        </ion-list>
+        
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <ion-button 
+            expand="block" 
+            color="primary" 
+            (click)="savePageSettings()"
+            [disabled]="pageLoading">
+            <ion-icon name="save" slot="start"></ion-icon>
+            {{ pageLoading ? 'Saving...' : 'Save Changes' }}
+          </ion-button>
+          
+          <ion-button 
+            expand="block" 
+            color="medium" 
+            fill="outline"
+            (click)="resetForm()"
+            [disabled]="pageLoading">
+            <ion-icon name="refresh" slot="start"></ion-icon>
+            Reset
+          </ion-button>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+  
+  <!-- No Page Data Message -->
+  <ion-card *ngIf="!currentPage && !pageLoading && pageError">
+    <ion-card-header>
+      <ion-card-title>📄 Page Settings</ion-card-title>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <div style="text-align: center; padding: 20px;">
+        <ion-icon name="document-text" style="font-size: 48px; color: #94a3b8;"></ion-icon>
+        <p style="margin-top: 12px; color: #64748b;">No page data available</p>
+        <p style="font-size: 0.9rem; color: #94a3b8;">Please login to view and edit page settings</p>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
   <ion-card>
     <ion-card-header>
       <ion-card-title>📱 Device Detection</ion-card-title>
