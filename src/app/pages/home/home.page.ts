@@ -54,6 +54,7 @@ export class HomePage implements OnInit {
   loginLoading = false;
   loginUsername = '';
   loginPassword = '';
+  rememberMe = true; // Default to true for better UX
 
   constructor(
     private deviceService: DeviceService,
@@ -269,10 +270,18 @@ export class HomePage implements OnInit {
           this.currentPage = response.page;
           this.loginError = '';
           
-          // Save auth state
-          localStorage.setItem('toybits_auth_token', response.token || '');
-          localStorage.setItem('toybits_page_id', response.page.id.toString());
-          localStorage.setItem('toybits_page_name', response.page.page_name);
+          // Save auth state with expiration
+          const authData = {
+            token: response.token || '',
+            pageId: response.page.id.toString(),
+            pageName: response.page.page_name,
+            rememberMe: this.rememberMe,
+            expiresAt: this.rememberMe 
+              ? Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+              : Date.now() + (24 * 60 * 60 * 1000)     // 24 hours
+          };
+          
+          localStorage.setItem('toybits_auth_data', JSON.stringify(authData));
           
           // Update UI
           this.updateUIState();
@@ -303,33 +312,45 @@ export class HomePage implements OnInit {
     this.loginError = '';
     
     // Clear auth state
-    localStorage.removeItem('toybits_auth_token');
-    localStorage.removeItem('toybits_page_id');
-    localStorage.removeItem('toybits_page_name');
+    localStorage.removeItem('toybits_auth_data');
     
     // Update UI
     this.updateUIState();
   }
 
   checkAuthToken(): void {
-    const token = localStorage.getItem('toybits_auth_token');
-    const pageId = localStorage.getItem('toybits_page_id');
+    const authDataStr = localStorage.getItem('toybits_auth_data');
     
-    if (token && pageId) {
-      // Try to validate token by getting page info
-      this.wisdomVaultApi.getPageById(parseInt(pageId)).subscribe({
-        next: (page) => {
-          this.isLoggedIn = true;
-          this.showLoginForm = false;
-          this.showNavigation = true;
-          this.currentPage = page;
-          this.updateUIState();
-        },
-        error: () => {
-          // Token invalid, clear it
+    if (authDataStr) {
+      try {
+        const authData = JSON.parse(authDataStr);
+        
+        // Check if token has expired
+        if (Date.now() > authData.expiresAt) {
+          console.log('Auth token expired');
           this.logout();
+          return;
         }
-      });
+        
+        // Try to validate token by getting page info
+        this.wisdomVaultApi.getPageById(parseInt(authData.pageId)).subscribe({
+          next: (page) => {
+            this.isLoggedIn = true;
+            this.showLoginForm = false;
+            this.showNavigation = true;
+            this.currentPage = page;
+            this.rememberMe = authData.rememberMe;
+            this.updateUIState();
+          },
+          error: () => {
+            // Token invalid, clear it
+            this.logout();
+          }
+        });
+      } catch (error) {
+        console.error('Error parsing auth data:', error);
+        this.logout();
+      }
     }
   }
 }

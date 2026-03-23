@@ -195,6 +195,98 @@ describe('Admin Homepage Login TDD Tests', () => {
       expect(component.loginError).toContain('Login failed');
       expect(component.showLoginForm).toBe(true);
     }));
+
+    it('should save auth data with rememberMe preference', fakeAsync(() => {
+      // Arrange
+      const mockResponse: LoginResponse = {
+        success: true,
+        message: 'Login successful',
+        page: {
+          id: 3,
+          page_id: '621011454421705',
+          page_name: 'KENSHi',
+          username: 'admin_kenshi',
+          tier: 'premium',
+          info: 'Test info',
+          additional_info: null,
+          features: {
+            inventory: false,
+            pos: false,
+            leads: true,
+            online_selling: false,
+            scheduling: false
+          },
+          emails: []
+        },
+        token: 'test-jwt-token-123'
+      };
+      mockApiService.login.and.returnValue(of(mockResponse));
+      component.rememberMe = true;
+      
+      // Spy on localStorage
+      spyOn(localStorage, 'setItem');
+      
+      // Act
+      component.login('admin_kenshi', 'test123');
+      tick();
+      
+      // Assert
+      expect(localStorage.setItem).toHaveBeenCalledWith(
+        'toybits_auth_data',
+        jasmine.stringContaining('"rememberMe":true')
+      );
+    }));
+
+    it('should save auth data with different expiration based on rememberMe', fakeAsync(() => {
+      // Arrange
+      const mockResponse: LoginResponse = {
+        success: true,
+        message: 'Login successful',
+        page: {
+          id: 3,
+          page_id: '621011454421705',
+          page_name: 'KENSHi',
+          username: 'admin_kenshi',
+          tier: 'premium',
+          info: 'Test info',
+          additional_info: null,
+          features: {
+            inventory: false,
+            pos: false,
+            leads: true,
+            online_selling: false,
+            scheduling: false
+          },
+          emails: []
+        },
+        token: 'test-jwt-token-123'
+      };
+      mockApiService.login.and.returnValue(of(mockResponse));
+      
+      // Spy on localStorage
+      spyOn(localStorage, 'setItem');
+      
+      // Test with rememberMe = true (7 days)
+      component.rememberMe = true;
+      component.login('admin_kenshi', 'test123');
+      tick();
+      
+      const call1 = (localStorage.setItem as jasmine.Spy).calls.mostRecent();
+      const data1 = JSON.parse(call1.args[1]);
+      expect(data1.expiresAt).toBeGreaterThan(Date.now() + (6 * 24 * 60 * 60 * 1000)); // > 6 days
+      expect(data1.expiresAt).toBeLessThan(Date.now() + (8 * 24 * 60 * 60 * 1000));    // < 8 days
+      
+      // Reset and test with rememberMe = false (24 hours)
+      (localStorage.setItem as jasmine.Spy).calls.reset();
+      component.rememberMe = false;
+      component.login('admin_kenshi', 'test123');
+      tick();
+      
+      const call2 = (localStorage.setItem as jasmine.Spy).calls.mostRecent();
+      const data2 = JSON.parse(call2.args[1]);
+      expect(data2.expiresAt).toBeGreaterThan(Date.now() + (23 * 60 * 60 * 1000)); // > 23 hours
+      expect(data2.expiresAt).toBeLessThan(Date.now() + (25 * 60 * 60 * 1000));    // < 25 hours
+    }));
   });
 
   // ==================== REQUIREMENT 3: CONDITIONAL DISPLAY ====================
@@ -317,6 +409,83 @@ describe('Admin Homepage Login TDD Tests', () => {
   // ==================== EDGE CASES ====================
   
   describe('Edge Cases', () => {
+    it('should auto-login with valid auth data', fakeAsync(() => {
+      // Arrange
+      const authData = {
+        token: 'test-jwt-token-123',
+        pageId: '3',
+        pageName: 'KENSHi',
+        rememberMe: true,
+        expiresAt: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days from now
+      };
+      
+      spyOn(localStorage, 'getItem').and.returnValue(JSON.stringify(authData));
+      
+      const mockPage = {
+        id: 3,
+        page_id: '621011454421705',
+        page_name: 'KENSHi',
+        username: 'admin_kenshi',
+        tier: 'premium' as 'premium',
+        info: 'Test info',
+        additional_info: null,
+        features: {
+          inventory: false,
+          pos: false,
+          leads: true,
+          online_selling: false,
+          scheduling: false
+        },
+        emails: []
+      };
+      mockApiService.getPageById.and.returnValue(of(mockPage));
+      
+      // Act
+      component.checkAuthToken();
+      tick();
+      
+      // Assert
+      expect(component.isLoggedIn).toBe(true);
+      expect(component.showLoginForm).toBe(false);
+      expect(component.showNavigation).toBe(true);
+      expect(component.currentPage).toEqual(mockPage);
+      expect(component.rememberMe).toBe(true);
+    }));
+
+    it('should logout when auth data is expired', fakeAsync(() => {
+      // Arrange
+      const authData = {
+        token: 'test-jwt-token-123',
+        pageId: '3',
+        pageName: 'KENSHi',
+        rememberMe: true,
+        expiresAt: Date.now() - 1000 // Expired 1 second ago
+      };
+      
+      spyOn(localStorage, 'getItem').and.returnValue(JSON.stringify(authData));
+      spyOn(component, 'logout');
+      
+      // Act
+      component.checkAuthToken();
+      tick();
+      
+      // Assert
+      expect(component.logout).toHaveBeenCalled();
+    }));
+
+    it('should logout when auth data is invalid JSON', fakeAsync(() => {
+      // Arrange
+      spyOn(localStorage, 'getItem').and.returnValue('invalid-json');
+      spyOn(component, 'logout');
+      
+      // Act
+      component.checkAuthToken();
+      tick();
+      
+      // Assert
+      expect(component.logout).toHaveBeenCalled();
+    }));
+
     it('should handle logout functionality', () => {
       // Arrange
       component.isLoggedIn = true;

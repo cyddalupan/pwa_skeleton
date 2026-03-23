@@ -36,6 +36,15 @@
           ></ion-input>
         </ion-item>
         
+        <!-- Remember Me Checkbox -->
+        <ion-item lines="none" style="margin-bottom: 16px;">
+          <ion-checkbox slot="start" [(ngModel)]="rememberMe" name="rememberMe"></ion-checkbox>
+          <ion-label style="font-size: 0.9rem; color: #4b5563;">
+            <ion-icon name="time" style="vertical-align: middle; margin-right: 4px;"></ion-icon>
+            Keep me logged in for 7 days
+          </ion-label>
+        </ion-item>
+        
         <!-- Error Message -->
         <div *ngIf="loginError" style="margin-bottom: 16px; padding: 12px; background: #fee2e2; border-radius: 6px; border: 1px solid #fca5a5;">
           <p style="margin: 0; color: #dc2626; font-size: 0.9rem;">
