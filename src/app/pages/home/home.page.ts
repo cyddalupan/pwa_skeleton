@@ -226,6 +226,12 @@ export class HomePage implements OnInit {
   }
 
   switchTab(tabName: string): void {
+    if (tabName === 'settings') {
+      // Navigate to the actual SettingsPage component
+      window.location.href = '/settings';
+      return;
+    }
+    
     this.currentTab = tabName;
     // Scroll to top when switching tabs
     const content = document.querySelector('ion-content');

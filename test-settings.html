@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <script>
+    // Simulate login
+    const authData = {
+      pageId: "3",
+      pageName: "KENSHi",
+      username: "admin_kenshi",
+      token: "test_token",
+      expiresAt: Date.now() + 86400000
+    };
+    localStorage.setItem('toybits_auth_data', JSON.stringify(authData));
+    console.log('Auth data stored:', authData);
+    
+    // Check what's in localStorage
+    console.log('LocalStorage keys:');
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      console.log(`  ${key}: ${localStorage.getItem(key)}`);
+    }
+  </script>
+</body>
+</html>
