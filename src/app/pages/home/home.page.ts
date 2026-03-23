@@ -24,7 +24,7 @@ export class HomePage implements OnInit {
   isDarkMode = false;
   installPromptDismissed = false;
   installTitle = '📱 Install as Native App';
-  currentTab = 'home';
+  currentTab = 'chat';
   notifications = true;
   autoSync = true;
   
@@ -55,6 +55,30 @@ export class HomePage implements OnInit {
   loginUsername = '';
   loginPassword = '';
   rememberMe = true; // Default to true for better UX
+
+  // Page settings state
+  pageLoading = false;
+  pageError = '';
+  pageSaved = false;
+  editPageName = '';
+  editInfo = '';
+  editAdditionalInfo = '';
+  editTier: 'basic' | 'gold' | 'premium' = 'basic';
+  editEmails: string[] = [''];
+  editFeatures = {
+    inventory: false,
+    pos: false,
+    leads: false,
+    online_selling: false,
+    scheduling: false
+  };
+
+  // Chat properties
+  chatInput = '';
+  chatMessages: Array<{sender: 'user' | 'openclaw', text: string, time: string}> = [];
+  isTyping = false;
+  chatSessionId: string | null = null;
+  chatHistory: Array<{sender: 'user' | 'openclaw', text: string, time: string}> = [];
 
   constructor(
     private deviceService: DeviceService,
@@ -226,12 +250,6 @@ export class HomePage implements OnInit {
   }
 
   switchTab(tabName: string): void {
-    if (tabName === 'settings') {
-      // Navigate to the actual SettingsPage component
-      window.location.href = '/settings';
-      return;
-    }
-    
     this.currentTab = tabName;
     // Scroll to top when switching tabs
     const content = document.querySelector('ion-content');
@@ -259,6 +277,288 @@ export class HomePage implements OnInit {
     }
   }
 
+  // Page settings methods
+  loadPageData(): void {
+    if (!this.isLoggedIn) {
+      this.pageError = 'Please login first to view page settings.';
+      return;
+    }
+
+    this.pageLoading = true;
+    this.pageError = '';
+    
+    // Get auth data from localStorage
+    const authDataStr = localStorage.getItem('toybits_auth_data');
+    if (!authDataStr) {
+      this.pageError = 'No authentication data found. Please login again.';
+      this.pageLoading = false;
+      return;
+    }
+
+    try {
+      const authData = JSON.parse(authDataStr);
+      const pageId = parseInt(authData.pageId, 10);
+      
+      this.wisdomVaultApi.getPageById(pageId).subscribe({
+        next: (page) => {
+          this.currentPage = page;
+          this.populateFormFromPage();
+          this.pageLoading = false;
+        },
+        error: (error) => {
+          this.pageError = 'Failed to load page data: ' + error.message;
+          this.pageLoading = false;
+        }
+      });
+    } catch (error) {
+      this.pageError = 'Invalid authentication data. Please login again.';
+      this.pageLoading = false;
+    }
+  }
+
+  populateFormFromPage(): void {
+    if (!this.currentPage) return;
+    
+    this.editPageName = this.currentPage.page_name || '';
+    this.editInfo = this.currentPage.info || '';
+    this.editAdditionalInfo = this.currentPage.additional_info || '';
+    this.editTier = this.currentPage.tier || 'basic';
+    this.editEmails = this.currentPage.emails?.length > 0 ? [...this.currentPage.emails] : [''];
+    
+    if (this.currentPage.features) {
+      this.editFeatures = { ...this.currentPage.features };
+    }
+  }
+
+  savePageSettings(): void {
+    if (!this.currentPage) return;
+    
+    this.pageLoading = true;
+    this.pageSaved = false;
+    
+    // Update current page with edited values
+    this.currentPage.page_name = this.editPageName;
+    this.currentPage.info = this.editInfo;
+    this.currentPage.additional_info = this.editAdditionalInfo;
+    this.currentPage.tier = this.editTier;
+    this.currentPage.emails = this.editEmails.filter(email => email.trim() !== '');
+    this.currentPage.features = { ...this.editFeatures };
+    
+    // Simulate API call (would be this.wisdomVaultApi.updatePage(this.currentPage))
+    setTimeout(() => {
+      this.pageLoading = false;
+      this.pageSaved = true;
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        this.pageSaved = false;
+      }, 3000);
+    }, 1000);
+  }
+
+  resetPageForm(): void {
+    this.populateFormFromPage();
+    this.pageSaved = false;
+  }
+
+  addEmailField(): void {
+    this.editEmails.push('');
+  }
+
+  removeEmailField(index: number): void {
+    if (this.editEmails.length > 1) {
+      this.editEmails.splice(index, 1);
+    } else {
+      // If only one email field, clear it instead of removing
+      this.editEmails[0] = '';
+    }
+  }
+
+  // Chat methods
+  getCurrentTime(): string {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async sendMessage(): Promise<void> {
+    if (!this.chatInput.trim()) return;
+
+    // Add user message
+    const userMessage = {
+      sender: 'user' as const,
+      text: this.chatInput,
+      time: this.getCurrentTime()
+    };
+    
+    this.chatMessages.push(userMessage);
+    this.chatHistory.push(userMessage);
+    
+    const userMessageText = this.chatInput;
+    this.chatInput = '';
+    
+    // Scroll to bottom
+    setTimeout(() => {
+      const container = document.querySelector('.chat-container');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 100);
+
+    // Show typing indicator
+    this.isTyping = true;
+    
+    try {
+      // Call real OpenClaw proxy
+      const response = await this.callOpenClawAPI(userMessageText);
+      
+      this.isTyping = false;
+      
+      const aiMessage = {
+        sender: 'openclaw' as const,
+        text: response,
+        time: this.getCurrentTime()
+      };
+      
+      this.chatMessages.push(aiMessage);
+      this.chatHistory.push(aiMessage);
+      
+    } catch (error) {
+      this.isTyping = false;
+      
+      // Fallback to simulated response if API fails
+      console.error('OpenClaw API error:', error);
+      const fallbackResponse = this.generateResponse(userMessageText);
+      
+      const aiMessage = {
+        sender: 'openclaw' as const,
+        text: fallbackResponse,
+        time: this.getCurrentTime()
+      };
+      
+      this.chatMessages.push(aiMessage);
+      this.chatHistory.push(aiMessage);
+    }
+    
+    // Scroll to bottom again
+    setTimeout(() => {
+      const container = document.querySelector('.chat-container');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 100);
+  }
+
+  async callOpenClawAPI(message: string): Promise<string> {
+    const payload = {
+      message: message,
+      sessionId: this.chatSessionId
+    };
+
+    try {
+      const response = await fetch('https://admin.toybits.cloud/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        mode: 'cors'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Store session ID for future messages
+      if (data.sessionId && !this.chatSessionId) {
+        this.chatSessionId = data.sessionId;
+        console.log('New chat session:', this.chatSessionId);
+      }
+      
+      return data.message;
+      
+    } catch (error) {
+      console.error('Failed to call OpenClaw API:', error);
+      throw error;
+    }
+  }
+
+  generateResponse(userMessage: string): string {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    // Help responses
+    if (lowerMessage.includes('help') || lowerMessage.includes('support')) {
+      return `I can help you with:<br>
+• <strong>Facebook Page Management</strong> - View and edit your pages<br>
+• <strong>Technical Support</strong> - Troubleshoot issues<br>
+• <strong>Business Automation</strong> - Set up workflows<br>
+• <strong>Code Help</strong> - Development assistance<br>
+<br>
+Try asking: "How do I edit my page settings?" or "Show me my Facebook pages"`;
+    }
+    
+    // Page management responses
+    if (lowerMessage.includes('page') || lowerMessage.includes('facebook')) {
+      return `You can manage your Facebook pages in the <strong>Settings tab</strong>.<br>
+<br>
+<strong>Available actions:</strong><br>
+• Edit page name and description<br>
+• Update tier (Basic/Gold/Premium)<br>
+• Configure features (Inventory, POS, Leads, etc.)<br>
+• Manage email addresses<br>
+<br>
+Switch to the Settings tab to get started!`;
+    }
+    
+    // Settings responses
+    if (lowerMessage.includes('setting') || lowerMessage.includes('configure')) {
+      return `Settings are available in the <strong>Settings tab</strong> (gear icon).<br>
+<br>
+<strong>What you can do:</strong><br>
+• Toggle Dark Mode<br>
+• Edit Page Settings (when logged in)<br>
+• Configure app preferences<br>
+<br>
+You're currently logged in as <strong>${this.currentPage?.page_name || 'admin'}</strong>.`;
+    }
+    
+    // Greeting responses
+    if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+      return `Hello! 👋 I'm OpenClaw, your AI assistant. I can help you manage your Facebook pages, troubleshoot issues, or just chat. What would you like to do today?`;
+    }
+    
+    // Default response
+    return `Thanks for your message! I'm OpenClaw, your AI assistant. I can help you with:<br>
+<br>
+1. <strong>Facebook Page Management</strong> - Edit settings, view analytics<br>
+2. <strong>Technical Support</strong> - Troubleshoot app issues<br>
+3. <strong>Business Automation</strong> - Set up workflows<br>
+4. <strong>General Questions</strong> - Ask me anything!<br>
+<br>
+Try asking: "How do I edit my page?" or "What can you help me with?"`;
+  }
+
+  quickAction(action: string): void {
+    switch (action) {
+      case 'help':
+        this.chatInput = 'Can you help me?';
+        this.sendMessage();
+        break;
+      case 'pages':
+        this.chatInput = 'Show me my Facebook pages';
+        this.sendMessage();
+        break;
+      case 'settings':
+        this.chatInput = 'How do I configure settings?';
+        this.sendMessage();
+        break;
+      case 'clear':
+        this.chatMessages = [];
+        break;
+    }
+  }
+
   // Login methods
   login(username: string, password: string): void {
     this.loginLoading = true;
@@ -275,6 +575,9 @@ export class HomePage implements OnInit {
           this.showNavigation = true;
           this.currentPage = response.page;
           this.loginError = '';
+          
+          // Load page data for settings
+          this.populateFormFromPage();
           
           // Save auth state with expiration
           const authData = {
@@ -346,6 +649,7 @@ export class HomePage implements OnInit {
             this.showNavigation = true;
             this.currentPage = page;
             this.rememberMe = authData.rememberMe;
+            this.populateFormFromPage();
             this.updateUIState();
           },
           error: () => {

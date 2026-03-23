@@ -68,21 +68,18 @@
   <!-- Angular app root -->
   <app-root></app-root>
   
-  <!-- Service Worker Registration -->
+  <!-- Loading screen removal -->
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('ngsw-worker.js');
-      });
-    }
-    
     // Remove loading screen when app is ready
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
-        document.querySelector('.app-loading').style.opacity = '0';
-        setTimeout(() => {
-          document.querySelector('.app-loading').style.display = 'none';
-        }, 300);
+        const loadingScreen = document.querySelector('.app-loading');
+        if (loadingScreen) {
+          loadingScreen.style.opacity = '0';
+          setTimeout(() => {
+            loadingScreen.style.display = 'none';
+          }, 300);
+        }
       }, 500);
     });
   </script>

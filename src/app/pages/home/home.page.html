@@ -195,83 +195,119 @@
       </ion-button>
     </div>
     
-    <!-- Tab 1: Home (default) -->
-    <div *ngIf="currentTab === 'home'" class="tab-content" data-testid="main-navigation">
-      <!-- Dashboard Stats -->
+    <!-- Tab 1: Chat Interface -->
+    <div *ngIf="currentTab === 'chat'" class="tab-content" data-testid="chat-interface">
+      <!-- Chat Header -->
       <ion-card>
         <ion-card-header>
-          <ion-card-title>📊 Dashboard</ion-card-title>
+          <ion-card-title>💬 Chat with OpenClaw</ion-card-title>
+          <ion-card-subtitle>Talk to your AI assistant directly in the app</ion-card-subtitle>
         </ion-card-header>
         
         <ion-card-content>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
-            <div style="text-align: center; padding: 16px; background: #f0f9ff; border-radius: 8px;">
-              <div style="font-size: 2rem; color: #4f46e5; margin-bottom: 8px;">6</div>
-              <div style="font-size: 0.9rem; color: #4b5563;">Facebook Pages</div>
+          <p>Ask questions, get help, or just chat. OpenClaw can help with:</p>
+          <ul style="margin: 8px 0; padding-left: 20px;">
+            <li>Managing your Facebook pages</li>
+            <li>Technical support</li>
+            <li>Business automation ideas</li>
+            <li>Code and development help</li>
+            <li>General conversation</li>
+          </ul>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Chat Messages Container -->
+      <div class="chat-container" #chatContainer style="margin-bottom: 80px;">
+        <!-- Welcome Message -->
+        <div class="message-bubble message-received" style="margin-bottom: 16px;">
+          <div class="message-avatar">
+            <ion-icon name="chatbubble" style="font-size: 24px; color: #4f46e5;"></ion-icon>
+          </div>
+          <div class="message-content">
+            <div class="message-sender">OpenClaw</div>
+            <div class="message-text">
+              👋 Hello! I'm OpenClaw, your AI assistant. How can I help you today?
             </div>
-            
-            <div style="text-align: center; padding: 16px; background: #f0f9ff; border-radius: 8px;">
-              <div style="font-size: 2rem; color: #10b981; margin-bottom: 8px;">3</div>
-              <div style="font-size: 0.9rem; color: #4b5563;">Premium Tier</div>
-            </div>
-            
-            <div style="text-align: center; padding: 16px; background: #f0f9ff; border-radius: 8px;">
-              <div style="font-size: 2rem; color: #f59e0b; margin-bottom: 8px;">2</div>
-              <div style="font-size: 0.9rem; color: #4b5563;">Gold Tier</div>
-            </div>
-            
-            <div style="text-align: center; padding: 16px; background: #f0f9ff; border-radius: 8px;">
-              <div style="font-size: 2rem; color: #ef4444; margin-bottom: 8px;">1</div>
-              <div style="font-size: 0.9rem; color: #4b5563;">Basic Tier</div>
+            <div class="message-time">{{ getCurrentTime() }}</div>
+          </div>
+        </div>
+
+        <!-- Chat Messages (dynamic) -->
+        <div *ngFor="let message of chatMessages" class="message-bubble" 
+             [class.message-sent]="message.sender === 'user'" 
+             [class.message-received]="message.sender === 'openclaw'">
+          
+          <div class="message-avatar" *ngIf="message.sender === 'openclaw'">
+            <ion-icon name="chatbubble" style="font-size: 24px; color: #4f46e5;"></ion-icon>
+          </div>
+          
+          <div class="message-content">
+            <div class="message-sender">{{ message.sender === 'user' ? 'You' : 'OpenClaw' }}</div>
+            <div class="message-text" [innerHTML]="message.text"></div>
+            <div class="message-time">{{ message.time }}</div>
+          </div>
+          
+          <div class="message-avatar" *ngIf="message.sender === 'user'">
+            <ion-icon name="person" style="font-size: 24px; color: #10b981;"></ion-icon>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div *ngIf="isTyping" class="message-bubble message-received typing-indicator">
+          <div class="message-avatar">
+            <ion-icon name="chatbubble" style="font-size: 24px; color: #4f46e5;"></ion-icon>
+          </div>
+          <div class="message-content">
+            <div class="message-sender">OpenClaw</div>
+            <div class="message-text">
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
+              <span class="typing-dot"></span>
             </div>
           </div>
-        </ion-card-content>
-      </ion-card>
-      
-      <!-- Facebook Pages List -->
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title>📱 Facebook Pages</ion-card-title>
-        </ion-card-header>
-        
-        <ion-card-content>
-          <p>Manage your connected Facebook pages:</p>
+        </div>
+      </div>
+
+      <!-- Chat Input -->
+      <div class="chat-input-container" style="position: fixed; bottom: 56px; left: 0; right: 0; background: white; padding: 12px; border-top: 1px solid #e5e7eb;">
+        <form (ngSubmit)="sendMessage()" style="display: flex; gap: 8px;">
+          <ion-input 
+            [(ngModel)]="chatInput" 
+            name="chatInput"
+            placeholder="Type your message..."
+            style="flex: 1;"
+            (keyup.enter)="sendMessage()"
+            [disabled]="isTyping"
+          ></ion-input>
           
-          <ion-button expand="block" color="primary" style="margin-bottom: 16px;">
+          <ion-button type="submit" color="primary" [disabled]="!chatInput.trim() || isTyping">
+            <ion-icon name="send" slot="icon-only"></ion-icon>
+          </ion-button>
+        </form>
+        
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <ion-button size="small" fill="outline" (click)="quickAction('help')" [disabled]="isTyping">
+            <ion-icon name="help" slot="start"></ion-icon>
+            Help
+          </ion-button>
+          
+          <ion-button size="small" fill="outline" (click)="quickAction('pages')" [disabled]="isTyping">
             <ion-icon name="logo-facebook" slot="start"></ion-icon>
-            View All Pages
+            My Pages
           </ion-button>
           
-          <ion-button expand="block" fill="outline" color="medium">
-            <ion-icon name="add-circle" slot="start"></ion-icon>
-            Add New Page
+          <ion-button size="small" fill="outline" (click)="quickAction('settings')" [disabled]="isTyping">
+            <ion-icon name="settings" slot="start"></ion-icon>
+            Settings
           </ion-button>
-        </ion-card-content>
-      </ion-card>
-      
-      <!-- API Status Card -->
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title>🔗 API Status</ion-card-title>
-        </ion-card-header>
-        
-        <ion-card-content>
-          <ion-item lines="none">
-            <ion-label>
-              <h2>WisdomVault API</h2>
-              <p>https://wisdomvault.welfareph.com/page/api/list/</p>
-            </ion-label>
-            <ion-badge [color]="apiStatus === 'online' ? 'success' : 'danger'" slot="end">
-              {{ apiStatus }}
-            </ion-badge>
-          </ion-item>
           
-          <ion-button expand="block" fill="clear" (click)="testApi()">
-            <ion-icon name="wifi" slot="start"></ion-icon>
-            Test Connection
+          <ion-button size="small" fill="outline" (click)="quickAction('clear')" [disabled]="isTyping">
+            <ion-icon name="trash" slot="start"></ion-icon>
+            Clear Chat
           </ion-button>
-        </ion-card-content>
-      </ion-card>
+        </div>
+      </div>
     </div>
 
     <!-- Tab 2: Components -->
@@ -304,15 +340,156 @@
           </ion-item>
         </ion-card-content>
       </ion-card>
+
+      <!-- Page Settings Card (only show when logged in) -->
+      <ion-card *ngIf="isLoggedIn && currentPage">
+        <ion-card-header>
+          <ion-card-title>📄 Page Settings</ion-card-title>
+          <ion-card-subtitle>{{ currentPage.page_name }}</ion-card-subtitle>
+        </ion-card-header>
+        
+        <ion-card-content>
+          <!-- Loading state -->
+          <div *ngIf="pageLoading" class="ion-text-center ion-padding">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Loading page data...</p>
+          </div>
+
+          <!-- Error state -->
+          <div *ngIf="pageError && !pageLoading" class="ion-text-center ion-padding" style="color: #ef4444;">
+            <ion-icon name="warning" style="font-size: 48px;"></ion-icon>
+            <p>{{ pageError }}</p>
+          </div>
+
+          <!-- Success message -->
+          <div *ngIf="pageSaved" class="ion-text-center ion-padding" style="color: #10b981; background: #d1fae5; border-radius: 8px; margin-bottom: 16px;">
+            <ion-icon name="checkmark-circle" style="font-size: 24px;"></ion-icon>
+            <p style="margin: 0; font-weight: 600;">Page settings saved successfully!</p>
+          </div>
+
+          <!-- Page Settings Form (only show when data loaded) -->
+          <div *ngIf="!pageLoading && !pageError && currentPage">
+            <!-- Read-only fields -->
+            <ion-item>
+              <ion-label position="stacked">Page ID (Facebook)</ion-label>
+              <ion-input [value]="currentPage.page_id" readonly></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Username</ion-label>
+              <ion-input [value]="currentPage.username" readonly></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Database ID</ion-label>
+              <ion-input [value]="currentPage.id" readonly></ion-input>
+            </ion-item>
+
+            <!-- Editable fields -->
+            <ion-item>
+              <ion-label position="stacked">Page Name</ion-label>
+              <ion-input [(ngModel)]="editPageName" name="pageName" placeholder="Enter page name"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Description</ion-label>
+              <ion-textarea [(ngModel)]="editInfo" name="info" placeholder="Enter page description" autoGrow="true" rows="3"></ion-textarea>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Additional Info</ion-label>
+              <ion-textarea [(ngModel)]="editAdditionalInfo" name="additionalInfo" placeholder="Enter additional information" autoGrow="true" rows="2"></ion-textarea>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Tier</ion-label>
+              <ion-select [(ngModel)]="editTier" name="tier" interface="popover">
+                <ion-select-option value="basic">Basic</ion-select-option>
+                <ion-select-option value="gold">Gold</ion-select-option>
+                <ion-select-option value="premium">Premium</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- Email Addresses -->
+            <div style="margin: 16px 0;">
+              <ion-label style="font-weight: 600; display: block; margin-bottom: 8px;">Email Addresses</ion-label>
+              <div *ngFor="let email of editEmails; let i = index" style="margin-bottom: 8px;">
+                <ion-item>
+                  <ion-input [(ngModel)]="editEmails[i]" [name]="'email' + i" type="email" placeholder="email@example.com"></ion-input>
+                  <ion-button slot="end" fill="clear" color="danger" (click)="removeEmailField(i)" *ngIf="editEmails.length > 1">
+                    <ion-icon name="trash"></ion-icon>
+                  </ion-button>
+                </ion-item>
+              </div>
+              <ion-button expand="block" fill="outline" size="small" (click)="addEmailField()">
+                <ion-icon name="add" slot="start"></ion-icon>
+                Add Email
+              </ion-button>
+            </div>
+
+            <!-- Features -->
+            <div style="margin: 16px 0;">
+              <ion-label style="font-weight: 600; display: block; margin-bottom: 12px;">Features</ion-label>
+              
+              <ion-item>
+                <ion-label>📦 Inventory Management</ion-label>
+                <ion-toggle [(ngModel)]="editFeatures.inventory" name="inventory"></ion-toggle>
+              </ion-item>
+              
+              <ion-item>
+                <ion-label>💳 POS System</ion-label>
+                <ion-toggle [(ngModel)]="editFeatures.pos" name="pos"></ion-toggle>
+              </ion-item>
+              
+              <ion-item>
+                <ion-label>📞 Leads Management</ion-label>
+                <ion-toggle [(ngModel)]="editFeatures.leads" name="leads"></ion-toggle>
+              </ion-item>
+              
+              <ion-item>
+                <ion-label>🛒 Online Selling</ion-label>
+                <ion-toggle [(ngModel)]="editFeatures.online_selling" name="onlineSelling"></ion-toggle>
+              </ion-item>
+              
+              <ion-item>
+                <ion-label>📅 Appointment Scheduling</ion-label>
+                <ion-toggle [(ngModel)]="editFeatures.scheduling" name="scheduling"></ion-toggle>
+              </ion-item>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+              <ion-button expand="block" color="primary" (click)="savePageSettings()" [disabled]="pageLoading">
+                <ion-icon name="save" slot="start"></ion-icon>
+                Save Changes
+              </ion-button>
+              
+              <ion-button expand="block" color="medium" fill="outline" (click)="resetPageForm()">
+                <ion-icon name="refresh" slot="start"></ion-icon>
+                Reset
+              </ion-button>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- No Page Data Message -->
+      <ion-card *ngIf="isLoggedIn && !currentPage && !pageLoading" style="background: #fef3c7;">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="document-text" style="font-size: 48px; color: #d97706;"></ion-icon>
+          <h3 style="color: #92400e; margin: 16px 0 8px;">No Page Data Available</h3>
+          <p style="color: #92400e; margin: 0;">Please login to view and edit your page settings.</p>
+        </ion-card-content>
+      </ion-card>
     </div>
   </div>
 </ion-content>
 
 <!-- Bottom Tab Bar (only show when logged in) -->
 <ion-tab-bar *ngIf="isLoggedIn && showNavigation" slot="bottom" data-testid="navigation-tabs">
-  <ion-tab-button tab="home" [selected]="currentTab === 'home'" (click)="switchTab('home')" style="--color: #64748b; --color-selected: #4f46e5;">
-    <ion-icon name="home" style="font-size: 24px; color: #4f46e5;"></ion-icon>
-    <ion-label>Home</ion-label>
+  <ion-tab-button tab="chat" [selected]="currentTab === 'chat'" (click)="switchTab('chat')" style="--color: #64748b; --color-selected: #4f46e5;">
+    <ion-icon name="chatbubble" style="font-size: 24px; color: #4f46e5;"></ion-icon>
+    <ion-label>Chat</ion-label>
   </ion-tab-button>
   
   <ion-tab-button tab="components" [selected]="currentTab === 'components'" (click)="switchTab('components')" style="--color: #64748b; --color-selected: #4f46e5;">
